@@ -2,7 +2,7 @@ name: Daily WeChat Image Push
 
 on:
   schedule:
-    - cron: '0 8 * * *'  # 每天 UTC 3:00（北京时间 11:00），用 crontab.guru 测试调整。
+    - cron: '0 0 * * *'  # UTC 3:00 = 北京 11:00，用 crontab.guru 测试调整
   workflow_dispatch:  # 手动测试
 
 jobs:
@@ -11,12 +11,27 @@ jobs:
     steps:
       - name: Download Image
         run: |
-          curl -L "https://60s.190009.xyz/v2/60s?encoding=image" -o daily_news.png
+          curl -L -f "https://60s.190009.xyz/v2/60s?encoding=image" -o daily_news.png
+          if [ ! -f daily_news.png ] || [ ! -s daily_news.png ]; then
+            echo "❌ Download failed: File missing or empty"
+            exit 1
+          fi
+          echo "✅ Image downloaded: $(file daily_news.png)"
+          ls -la daily_news.png  # 显示文件大小
+
+      - name: Upload Artifact for Debug
+        uses: actions/upload-artifact@v4
+        with:
+          name: daily-news-image
+          path: daily_news.png
+        if: always()  # 即使失败也上传，方便你下载检查
 
       - name: Send to WeChat via PushPlus
-        uses: 849463198/pushplus-action@v1  # 或其他微信推送Action
+        if: success()  # 只在下载成功时推送
+        uses: HollowMan6/send-message-to-wechat@v1.1.5  # 可靠 Action，支持 PushPlus + 图片
         with:
-          token: ${{ secrets.PUSHPLUS_TOKEN }}
+          token: ${{ secrets.PPTOKEN }}  # PushPlus Token
           title: '今日 60s 新闻摘要'
-          content: '每天60秒看世界！'
-          file: 'daily_news.png'  # 图片附件
+          content: '每天 60 秒看世界！'  # 文本描述
+          image: daily_news.png  # 直接附件图片
+          delay: '0'  # 无延迟
