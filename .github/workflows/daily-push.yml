@@ -2,31 +2,35 @@ name: Daily WeChat Image Push
 
 on:
   schedule:
-    - cron: '0 0 * * *'    # 北京时间每天早上 8:00
+    - cron: '0 0 * * *'   # 北京时间每天 11:00（UTC+8）
   workflow_dispatch:
 
 jobs:
   push:
     runs-on: ubuntu-latest
     steps:
-      - name: 下载今日 60s 图片
+      - name: Download Image（只是验证图片是否正常生成）
         run: |
-          curl -L -f "https://60s.190009.xyz/v2/60s?encoding=image" -o 60s.png
+          curl -L -f "https://60s.190009.xyz/v2/60s?encoding=image" -o daily_news.png
+          echo "图片下载成功，大小 $(du -h daily_news.png | cut -f1)"
 
-      - name: 推送至微信私聊（文件传输助手）
-        env:
-          TOKEN: ${{ secrets.PPTOKEN }}
+      - name: Push to WeChat via PushPlus（只发链接）
         run: |
-          # 把图片转成 base64
-          BASE64=$(base64 -w 0 60s.png)
-          # 直接发到文件传输助手（channel=wechat）
-          curl -X POST https://www.pushplus.plus/send \
+          curl -X POST "https://www.pushplus.plus/send" \
             -H "Content-Type: application/json" \
-            -d "{
-              \"token\": \"$TOKEN\",
-              \"title\": \"今日 60s 新闻摘要\",
-              \"content\": \"<img src='data:image/png;base64,$BASE64' width='100%' />\",
-              \"template\": \"html\",
-              \"channel\": \"wechat\"
-            }"
-          echo "已发送至文件传输助手"
+            -d '{
+              "token": "${{ secrets.PPTOKEN }}",
+              "title": "今日 60s 新闻摘要",
+              "content": "每天 60 秒看世界！\n\n<img src=\"https://60s.190009.xyz/v2/60s?encoding=image\" width=\"100%\">",
+              "template": "html"
+            }'
+          echo "推送完成！"
+
+      # 可选：失败时也提醒你
+      - name: Notify on Failure
+        if: failure()
+        run: |
+          curl -X POST "https://www.pushplus.plus/send" \
+            -d token=${{ secrets.PPTOKEN }} \
+            -d title="60s 推送失败啦" \
+            -d content="今天生成或推送出问题了，快去看看～"
