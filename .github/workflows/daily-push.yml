@@ -1,0 +1,22 @@
+name: Daily WeChat Image Push
+
+on:
+  schedule:
+    - cron: '0 8 * * *'  # 每天 UTC 3:00（北京时间 11:00），用 crontab.guru 测试调整。
+  workflow_dispatch:  # 手动测试
+
+jobs:
+  push:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download Image
+        run: |
+          curl -L "https://60s.190009.xyz/v2/60s?encoding=image" -o daily_news.png
+
+      - name: Send to WeChat via PushPlus
+        uses: 849463198/pushplus-action@v1  # 或其他微信推送Action
+        with:
+          token: ${{ secrets.PUSHPLUS_TOKEN }}
+          title: '今日 60s 新闻摘要'
+          content: '每天60秒看世界！'
+          file: 'daily_news.png'  # 图片附件
