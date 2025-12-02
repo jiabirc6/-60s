@@ -12,7 +12,7 @@ jobs:
     steps:
       - name: Download Image
         run: |
-          curl -L -f "https://605.190009.xyz/2025encoding-image" -o daily_news.png
+          curl -L -f "https://60s.190009.xyz/2025encoding-image" -o daily_news.png
           echo "图片下载成功，大小 $(du -h daily_news.png | cut -f1)"
 
       - name: Push to WeChat via PushPlus
@@ -21,8 +21,8 @@ jobs:
           -H "Content-Type: application/json" \
           -d '{
             "token":"${{ secrets.PPTOKEN }}",
-            "title":"今日 605 新闻速览",
-            "content":"<img src=\"https://605.190009.xyz/2025encoding-image width=\"1000\"/>",
+            "title":"今日 60s 新闻速览",
+            "content":"<img src=\"https://60s.190009.xyz/2025encoding-image width=\"1000\"/>",
             "template":"html"
           }'
           echo "推送完成！"
