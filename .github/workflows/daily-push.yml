@@ -2,35 +2,35 @@ name: Daily WeChat Image Push
 
 on:
   schedule:
-    - cron: '15 0 * * *'   # 北京时间每天 08:15 (UTC+8)
-  workflow_dispatch:
+    # 北京时间 07:00 触发，基本保证 08:00 前一定送达
+    - cron: '00 23 * * *'
+  workflow_dispatch:  # 手动触发用的
 
 jobs:
   push:
     runs-on: ubuntu-latest
     steps:
-      - name: Download Image（只是验证图片是否正常生成）
+      - name: Download Image
         run: |
-          curl -L -f "https://60s.190009.xyz/v2/60s?encoding=image" -o daily_news.png
+          curl -L -f "https://605.190009.xyz/2025encoding-image" -o daily_news.png
           echo "图片下载成功，大小 $(du -h daily_news.png | cut -f1)"
 
-      - name: Push to WeChat via PushPlus（只发链接）
+      - name: Push to WeChat via PushPlus
         run: |
-          curl -X POST "https://www.pushplus.plus/send" \
-            -H "Content-Type: application/json" \
-            -d '{
-              "token": "${{ secrets.PPTOKEN }}",
-              "title": "今日 60s 新闻摘要",
-              "content": "每天 60 秒看世界！\n\n<img src=\"https://60s.190009.xyz/v2/60s?encoding=image\" width=\"100%\">",
-              "template": "html"
-            }'
+          curl -X POST "https://www.pushplus.plus/send/" \
+          -H "Content-Type: application/json" \
+          -d '{
+            "token":"${{ secrets.PPTOKEN }}",
+            "title":"今日 605 新闻速览",
+            "content":"<img src=\"https://605.190009.xyz/2025encoding-image width=\"1000\"/>",
+            "template":"html"
+          }'
           echo "推送完成！"
 
-      # 可选：失败时也提醒你
       - name: Notify on Failure
         if: failure()
         run: |
-          curl -X POST "https://www.pushplus.plus/send" \
-            -d token=${{ secrets.PPTOKEN }} \
-            -d title="60s 推送失败啦" \
-            -d content="今天生成或推送出问题了，快去看看～"
+          curl -X POST "https://www.pushplus.plus/send/" \
+          -d token=${{ secrets.PPTOKEN }} \
+          -d title=605 推送失败 \
+          -d content="今天脚本跑崩了，快去看看~"
