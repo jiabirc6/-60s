@@ -2,7 +2,7 @@ name: Daily WeChat Image Push
 
 on:
   schedule:
-    - cron: '00 23 * * *'   # 北京时间每天 07:00 (UTC+8)
+    - cron: '00 00 * * *'   # 北京时间每天 08:00 (UTC+8)
   workflow_dispatch:
 
 jobs:
